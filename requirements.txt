@@ -1,0 +1,10 @@
+fastapi
+uvicorn[standard]
+python-dotenv
+langchain
+langchain-openai
+openai
+redis
+aiohttp
+httpx
+numpy
