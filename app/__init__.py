@@ -1,5 +1,5 @@
 from dotenv import load_dotenv
-load_dotenv()  # load environment variables from .env before anything else
+load_dotenv()   # ← make sure this is the very first thing in __init__.py
 
 from fastapi import FastAPI
 from .main import router
