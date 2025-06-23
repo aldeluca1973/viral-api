@@ -1,5 +1,4 @@
-venv/
-cat > .gitignore << 'EOF'
+# <.gitignore>
 # ─── Python virtual-envs ────────────────────────────
 venv/
 .venv/
