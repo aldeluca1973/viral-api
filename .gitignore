@@ -1,0 +1,15 @@
+venv/
+cat > .gitignore << 'EOF'
+# ─── Python virtual-envs ────────────────────────────
+venv/
+.venv/
+venv_viral/
+
+# ─── Secrets & local config ─────────────────────────
+.env
+*.env
+
+# ─── macOS & IDE clutter ───────────────────────────
+.DS_Store
+.idea/
+__pycache__/
