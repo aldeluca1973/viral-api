@@ -10,11 +10,9 @@ from .publish import post_linkedin, post_facebook
 
 router = APIRouter()
 
-API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
-
 # Add this at the top with your other constants
 APP_VERSION = "1.0.1"  # Increment this with each fix
-API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
+API_KEY = os.getenv("INTERNAL_API_KEY", "dev")  # ← Keep only one API_KEY definition
 
 def verify_key(x_api_key: str = Header(None)):
     if x_api_key != API_KEY:
@@ -24,6 +22,11 @@ def verify_key(x_api_key: str = Header(None)):
 @router.get("/version")  # No auth required for version check
 def get_version():
     return {"version": APP_VERSION}
+
+# Add this right after your version endpoint
+@router.get("/health")  # No auth required - for Render health checks
+def health_check():
+    return {"status": "healthy"}
 
 class TrendItem(BaseModel):
     source: str
