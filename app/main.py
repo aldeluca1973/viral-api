@@ -53,3 +53,10 @@ async def publish_li(payload: dict):
 @router.post("/publish/facebook", dependencies=[Depends(verify_key)])
 async def publish_fb(payload: dict):
     return await post_facebook(payload)
+@router.get("/config", dependencies=[Depends(verify_key)])
+def get_config():
+    return {
+        "LI_ACCESS_TOKEN": bool(os.getenv("LI_ACCESS_TOKEN")),
+        "FB_PAGE_ID":    os.getenv("FB_PAGE_ID")
+    }
+

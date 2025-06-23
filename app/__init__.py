@@ -1,5 +1,5 @@
-from dotenv import load_dotenv   # NEW — pulls variables from .env
-load_dotenv()     
+from dotenv import load_dotenv
+load_dotenv()  # load environment variables from .env before anything else
 
 from fastapi import FastAPI
 from .main import router
