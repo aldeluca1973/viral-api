@@ -9,21 +9,17 @@ from .generate import generate_copy
 from .publish import post_linkedin, post_facebook
 
 router = APIRouter()
-
-# Add this at the top with your other constants
 APP_VERSION = "1.0.1"  # Increment this with each fix
-API_KEY = os.getenv("INTERNAL_API_KEY", "dev")  # ← Keep only one API_KEY definition
+API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
 
 def verify_key(x_api_key: str = Header(None)):
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Bad API Key")
 
-# Add the version endpoint here (before your models)
 @router.get("/version")  # No auth required for version check
 def get_version():
     return {"version": APP_VERSION}
 
-# Add this right after your version endpoint
 @router.get("/health")  # No auth required - for Render health checks
 def health_check():
     return {"status": "healthy"}
