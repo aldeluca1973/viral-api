@@ -1,8 +1,18 @@
 # <README.md>
-"""
-# Carism Viral‑Automation API
+# Carism USA - Viral-Automation API v0.1.0
 
-## Local development
+A service to track trending marketing headlines, deduplicate & score them, generate AI-powered social media content, and publish to LinkedIn & Facebook.
+
+## Features
+- **Fetch** top headlines from Reddit, Azure AI Search, and SerpAPI
+- **Deduplicate** semantically with embeddings & Redis caching
+- **Score** items by recency (viralScore)
+- **Generate** personalized copy & image prompts via GPT/Claude
+- **Publish** content to LinkedIn and Facebook pages
+
+## 🔧 Getting Started
+
+### Local development
 ```bash
 python -m venv venv && source venv/bin/activate
 pip install -r requirements.txt
@@ -11,14 +21,16 @@ uvicorn app:app --reload
 ```
 
 ## OAuth 2.0 Setup for LinkedIn
-1. In your LinkedIn Developer Portal app **Products**, ensure **Share on LinkedIn** and **Sign In with LinkedIn (OIDC)** are added.
+1. In LinkedIn Developer **Products**, ensure **Share on LinkedIn** and **Sign In with LinkedIn (OIDC)** are added.
 2. In the **Auth** tab, under **Authorized redirect URLs**, add:
    ```
    http://localhost:8000/linkedin/oauth
    ```
-3. Under **OAuth 2.0 Scopes**, select only:
-   - `profile`
-   - `w_member_social`
+3. In **OAuth 2.0 scopes**, confirm you see:
+   - openid
+   - profile
+   - email
+   - w_member_social
 4. Save settings.
 5. Authorize by opening in your browser (single line):
    ```text
