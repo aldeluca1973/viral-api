@@ -50,7 +50,7 @@ async def gather_sources():
 
         raw = await asyncio.gather(*tasks)
 
-        # flatten + unify ➜ create common dict structure per item
+        # flatten + unify ➔ create common dict structure per item
         reddit_items = [
             {
                 "source": "reddit",

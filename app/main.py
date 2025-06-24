@@ -1,12 +1,17 @@
 from fastapi import APIRouter, Header, HTTPException, Depends
+from fastapi.security.api_key import APIKeyHeader
 from pydantic import BaseModel, Field
 from typing import List
+from fastapi.security import APIKeyHeader
+from fastapi.openapi.models import APIKey
+from fastapi.openapi.models import APIKey as OpenAPIKey
 import os
 from .scrape import gather_sources
 from .dedupe import dedupe_headlines
 from .score import score_items
 from .generate import generate_copy
 from .publish import post_linkedin, post_facebook
+from fastapi import Security
 
 router = APIRouter()
 
@@ -17,7 +22,10 @@ def debug_key():
 APP_VERSION = "1.0.1"  # Increment this with each fix
 API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
 
-def verify_key(x_api_key: str = Header(None)):
+# ⬇️ Define Swagger-compatible security schema
+api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
+
+def verify_key(x_api_key: str = Depends(api_key_header)):
     if x_api_key != API_KEY:
         raise HTTPException(status_code=401, detail="Bad API Key")
 
