@@ -1,6 +1,6 @@
 # <app/scrape.py>
 import aiohttp, asyncio, os
-from .utils import async_retry
+# from .utils import async_retry # Comment this out for now
 
 AI_KEY = os.getenv("AI_SEARCH_KEY")
 AI_ENDPOINT = os.getenv("AI_SEARCH_ENDPOINT")
@@ -27,7 +27,7 @@ TRENDING_TOPICS = [
     "cookieless tracking solutions"
 ]
 
-@async_retry
+#@async_retry
 async def fetch(session, url, **kwargs):
     async with session.get(url, **kwargs) as response:
         response.raise_for_status()
