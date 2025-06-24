@@ -9,6 +9,11 @@ from .generate import generate_copy
 from .publish import post_linkedin, post_facebook
 
 router = APIRouter()
+
+@router.get("/debug/key")
+def debug_key():
+    return {"loaded_internal_key": API_KEY}
+
 APP_VERSION = "1.0.1"  # Increment this with each fix
 API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
 
