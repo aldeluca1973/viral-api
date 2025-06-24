@@ -1,10 +1,11 @@
+# <app/scrape.py>
 import aiohttp, asyncio, os
 from .utils import async_retry
 
-# ‑‑‑ Environment vars ‑‑‑
-AI_KEY       = os.getenv("AI_SEARCH_KEY")          # Azure AI Search  admin key
-AI_ENDPOINT  = os.getenv("AI_SEARCH_ENDPOINT", "").rstrip("/") # ensure trailing /
-SERP_KEY     = os.getenv("SERPAPI_KEY")            # optional Google News
+AI_KEY       = os.getenv("AI_SEARCH_KEY")
+AI_ENDPOINT  = os.getenv("AI_SEARCH_ENDPOINT", "").rstrip("/")
+AI_INDEX     = os.getenv("AI_SEARCH_INDEX", "carismindex")
+SERP_KEY     = os.getenv("SERPAPI_KEY")
 HEADERS      = {"User-Agent": "CarismBot/1.0"}
 
 @async_retry()
@@ -14,7 +15,7 @@ async def fetch(session, url, params=None, headers=None):
         return await r.json()
 
 async def gather_sources():
-    """Return unified list of Reddit, Azure AI Search News, optional SerpAPI headlines."""
+    """Return unified list of Reddit, Azure AI Search News, optional SerpAPI headlines."""
     async with aiohttp.ClientSession() as session:
         reddit = fetch(
             session,
@@ -24,9 +25,18 @@ async def gather_sources():
 
         ai_news = fetch(
             session,
-            f"{AI_ENDPOINT}/news/search",
-            params={"q": "marketing automation", "count": 50},
-            headers={**HEADERS, "Ocp-Apim-Subscription-Key": AI_KEY},
+            f"{AI_ENDPOINT}/indexes/{AI_INDEX}/docs",
+            params={
+                "api-version": "2023-07-01-Preview",
+                "search": "marketing automation",
+                "searchFields": "title,description",
+                "top": 50
+            },
+            headers={
+                **HEADERS,
+                "api-key": AI_KEY,
+                "Content-Type": "application/json"
+            }
         )
 
         tasks = [reddit, ai_news]
@@ -54,11 +64,11 @@ async def gather_sources():
         ai_items = [
             {
                 "source": "ai-search",
-                "headline": a["name"],
-                "url": a["url"],
-                "published": a["datePublished"],
+                "headline": a.get("title", "Untitled"),
+                "url": a.get("link", "#"),
+                "published": a.get("publishedAt", "2025-01-01T00:00:00Z"),
             }
-            for a in raw[1]["value"]
+            for a in raw[1].get("value", [])
         ]
 
         serp_items = []
@@ -74,3 +84,4 @@ async def gather_sources():
             ]
 
         return reddit_items + ai_items + serp_items
+
