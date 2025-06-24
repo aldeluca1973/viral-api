@@ -17,7 +17,7 @@ router = APIRouter()
 
 @router.get("/debug/key")
 def debug_key():
-    return {"loaded_internal_key": API_KEY}
+   return {"loaded_internal_key": API_KEY}
 
 APP_VERSION = "1.0.1"  # Increment this with each fix
 API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
@@ -26,51 +26,55 @@ API_KEY = os.getenv("INTERNAL_API_KEY", "dev")
 api_key_header = APIKeyHeader(name="x-api-key", auto_error=False)
 
 def verify_key(x_api_key: str = Depends(api_key_header)):
-    if x_api_key != API_KEY:
-        raise HTTPException(status_code=401, detail="Bad API Key")
+   if x_api_key != API_KEY:
+       raise HTTPException(status_code=401, detail="Bad API Key")
 
 @router.get("/version")  # No auth required for version check
 def get_version():
-    return {"version": APP_VERSION}
+   return {"version": APP_VERSION}
 
 @router.get("/health")  # No auth required - for Render health checks
 def health_check():
-    return {"status": "healthy"}
+   return {"status": "healthy"}
 
 class TrendItem(BaseModel):
-    source: str
-    headline: str
-    url: str
-    published: str
+   source: str
+   headline: str
+   url: str
+   published: str
 
 class BreakthroughRequest(BaseModel):
-    items: List[TrendItem]
-    threshold: float = Field(0.7, ge=0, le=1)
+   items: List[TrendItem]
+   threshold: float = Field(0.7, ge=0, le=1)
 
 class CopyRequest(BaseModel):
-    headline: str
-    tone: str = "curious"
-    platform: str = "linkedin"
+   headline: str
+   tone: str = "curious"
+   platform: str = "linkedin"
 
 @router.get("/trends/scrape", dependencies=[Depends(verify_key)])
-async def scrape():
-    """Fetch raw headlines from Reddit, Bing News, LinkedIn Pulse."""
-    return await gather_sources()
+async def scrape(topic: str = None):
+    """
+    Fetch trending marketing intelligence topics.
+    
+    - **topic**: Optional specific topic to search. If not provided, randomly selects from trending marketing topics.
+    """
+    return await gather_sources(topic)
 
 @router.post("/trends/breakthrough", dependencies=[Depends(verify_key)])
 async def breakthrough(req: BreakthroughRequest):
-    deduped = await dedupe_headlines(req.items)
-    scored = score_items(deduped)
-    return [x for x in scored if x["viralScore"] >= req.threshold]
+   deduped = await dedupe_headlines(req.items)
+   scored = score_items(deduped)
+   return [x for x in scored if x["viralScore"] >= req.threshold]
 
 @router.post("/content/generate", dependencies=[Depends(verify_key)])
 async def gen(req: CopyRequest):
-    return await generate_copy(req.headline, req.tone, req.platform)
+   return await generate_copy(req.headline, req.tone, req.platform)
 
 @router.post("/publish/linkedin", dependencies=[Depends(verify_key)])
 async def publish_li(payload: dict):
-    return await post_linkedin(payload)
+   return await post_linkedin(payload)
 
 @router.post("/publish/facebook", dependencies=[Depends(verify_key)])
 async def publish_fb(payload: dict):
-    return await post_facebook(payload)
+   return await post_facebook(payload)

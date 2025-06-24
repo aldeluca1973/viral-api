@@ -1,24 +1,39 @@
-from langchain_openai import OpenAIEmbeddings
-from .utils import redis_client
-import numpy as np, json, hashlib, time, os
+# <app/dedupe.py>
+import hashlib, json, os
+import openai, redis.asyncio as redis
+from .utils import embed_text, async_retry
 
-emb = OpenAIEmbeddings(model="text-embedding-3-small")
-SIM_THRESHOLD = float(os.getenv("SIM_THRESHOLD", 0.85))
-CACHE_TTL = 60*60*24  # 24 h
+openai.api_key = os.getenv("OPENAI_API_KEY")
+rdb = redis.from_url(os.getenv("REDIS_URL", "redis://localhost:6379"))
 
-async def dedupe_headlines(items):
-    out, vectors = [], []
+@async_retry()
+async def dedupe_headlines(items: list[dict]) -> list[dict]:
+    seen = set()
+    output = []
+
     for item in items:
         h = item["headline"]
         cache_key = f"emb:{hashlib.md5(h.encode()).hexdigest()}"
-        vec_json = await redis_client.get(cache_key)
-        if vec_json:
-            vec = json.loads(vec_json)
+
+        # Fetch or create embedding
+        cached = await rdb.get(cache_key)
+        if cached:
+            emb = json.loads(cached)
         else:
-            vec = emb.embed_query(h)
-            await redis_client.set(cache_key, json.dumps(vec), ex=CACHE_TTL)
-        # cosine compare against collected vectors
-        if not vectors or max(np.dot(vec, v)/(np.linalg.norm(vec)*np.linalg.norm(v)) for v in vectors) < SIM_THRESHOLD:
-            vectors.append(vec)
-            out.append(item)
-    return out
+            emb = await embed_text(h)
+            await rdb.set(cache_key, json.dumps(emb), ex=86400)
+
+        # Compare with seen
+        is_duplicate = False
+        for other in seen:
+            # simple dot product thresholding (e.g., cosine similarity)
+            similarity = sum(a * b for a, b in zip(emb, other))
+            if similarity > 0.94:
+                is_duplicate = True
+                break
+
+        if not is_duplicate:
+            seen.add(tuple(emb))
+            output.append(item)
+
+    return output

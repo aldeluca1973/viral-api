@@ -1,18 +1,30 @@
-import os, asyncio, aiohttp, redis.asyncio as redis
-from functools import wraps
+# <app/utils.py>
+import time, functools
+import openai
+import os
 
-redis_url = os.getenv("REDIS_URL", "redis://localhost:6379")
-redis_client = redis.from_url(redis_url, decode_responses=True)
+OPENAI_KEY = os.getenv("OPENAI_API_KEY")
+openai.api_key = OPENAI_KEY
 
-def async_retry(times:int=3, delay:float=2.0):
-    def deco(fn):
-        @wraps(fn)
-        async def wrapper(*a, **k):
-            for attempt in range(times):
+async def embed_text(text: str) -> list:
+    """Return OpenAI embedding for a given string."""
+    response = await openai.Embedding.acreate(
+        input=text,
+        model="text-embedding-ada-002"
+    )
+    return response["data"][0]["embedding"]
+
+
+def async_retry(retries=3, delay=1):
+    def decorator(fn):
+        @functools.wraps(fn)
+        async def wrapper(*args, **kwargs):
+            for attempt in range(retries):
                 try:
-                    return await fn(*a, **k)
+                    return await fn(*args, **kwargs)
                 except Exception as e:
-                    if attempt == times-1: raise
-                    await asyncio.sleep(delay * (2**attempt))
+                    if attempt == retries - 1:
+                        raise
+                    time.sleep(delay)
         return wrapper
-    return deco
+    return decorator
