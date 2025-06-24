@@ -12,6 +12,8 @@ from .score import score_items
 from .generate import generate_copy
 from .publish import post_linkedin, post_facebook
 from fastapi import Security
+from .scrape import gather_sources, TRENDING_TOPICS
+from .utils import find_similar_topics
 
 router = APIRouter()
 
@@ -78,3 +80,51 @@ async def publish_li(payload: dict):
 @router.post("/publish/facebook", dependencies=[Depends(verify_key)])
 async def publish_fb(payload: dict):
    return await post_facebook(payload)
+
+@router.get("/trends/discover", dependencies=[Depends(verify_key)])
+async def discover_trends(interest: str = None):
+    """Discover trending topics related to user interest using AI"""
+    
+    if interest:
+        # Find similar trending topics using embeddings
+        similar = await find_similar_topics(
+            interest,
+            TRENDING_TOPICS,
+            provider="local",
+            top_k=5
+        )
+        
+        # Gather content for top similar topics
+        all_items = []
+        topics_searched = []
+        
+        for topic, similarity_score in similar[:3]:  # Top 3 most similar
+            result = await gather_sources(topic)
+            all_items.extend(result["items"])
+            topics_searched.append({
+                "topic": topic,
+                "similarity": round(similarity_score, 2)
+            })
+        
+        # Dedupe and score
+        deduped = await dedupe_headlines(all_items)
+        scored = score_items(deduped)
+        
+        return {
+            "user_interest": interest,
+            "discovered_topics": topics_searched,
+            "total_results": len(scored),
+            "trending_content": scored[:20]  # Top 20 results
+        }
+    else:
+        # Default behavior - random topic
+        result = await gather_sources()
+        items = result["items"]
+        deduped = await dedupe_headlines(items)
+        scored = score_items(deduped)
+        
+        return {
+            "topic_searched": result["topic_searched"],
+            "total_results": len(scored),
+            "trending_content": scored[:20]
+        }

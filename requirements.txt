@@ -7,5 +7,6 @@ openai
 redis
 aiohttp
 httpx
-numpy
 pytest
+sentence-transformers  # Add this if using local embeddings
+numpy  # Add this if using embeddings
