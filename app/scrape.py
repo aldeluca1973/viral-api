@@ -3,7 +3,7 @@ from .utils import async_retry
 
 # ‑‑‑ Environment vars ‑‑‑
 AI_KEY       = os.getenv("AI_SEARCH_KEY")          # Azure AI Search  admin key
-AI_ENDPOINT  = os.getenv("AI_SEARCH_ENDPOINT", "").rstrip("/") + "/"  # ensure trailing /
+AI_ENDPOINT  = os.getenv("AI_SEARCH_ENDPOINT", "").rstrip("/") # ensure trailing /
 SERP_KEY     = os.getenv("SERPAPI_KEY")            # optional Google News
 HEADERS      = {"User-Agent": "CarismBot/1.0"}
 
@@ -24,7 +24,7 @@ async def gather_sources():
 
         ai_news = fetch(
             session,
-            f"{AI_ENDPOINT}news/search",
+            f"{AI_ENDPOINT}/news/search",
             params={"q": "marketing automation", "count": 50},
             headers={**HEADERS, "Ocp-Apim-Subscription-Key": AI_KEY},
         )

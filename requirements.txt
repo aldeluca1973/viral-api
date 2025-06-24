@@ -8,3 +8,4 @@ redis
 aiohttp
 httpx
 numpy
+pytest
