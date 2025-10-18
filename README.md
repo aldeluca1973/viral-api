@@ -1,4 +1,3 @@
-# <README.md>
 # Carism USA - Viral-Automation API v0.1.0
 
 A service to track trending marketing headlines, deduplicate & score them, generate AI-powered social media content, and publish to LinkedIn & Facebook.
